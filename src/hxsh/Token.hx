@@ -7,9 +7,12 @@ enum Token {
     /* Identifier */
     TIdent(id : String);
 
-    /* Unary Operators */
+    /* Operators */
     TOper(op : String);
 
+    /* Control Operators */
+    TCtrl(op : String);
+    
     /* Group */
     TParen(tree : Array<Token>);
 
@@ -32,6 +35,7 @@ enum Token {
     // TSubstitute(toks : Array<Token>);
 
     TComma;
+    TLineBreak;
 }
 
 enum Const {
