@@ -50,15 +50,18 @@ class Lexer {
 
 		/* Whitespace */
 		else if (c.isWhiteSpace()) {
-			if (c.isLineBreaking())
+			if (c.isLineBreaking()) {
 				line++;
+				if (tree[tree.length-1] != TLineBreak)
+					return TLineBreak;
+			}
 			advance();
 			return parseNext();
 		}
 
 		/* === Numeric Literals === */
 		else if (c.isNumeric()) {
-			var snum:String = (c.aschar + '');
+			var snum:String = (c.aschar);
 			advance();
 			c = current();
 			while (!atend() && (c.isNumeric() || c == ".".code)) {
@@ -141,31 +144,16 @@ class Lexer {
 				op += c;
 				c = advance();
 			}
-			return TOper(op);
-			/*
-			var _c:Int = cursor;
-			var nxt:Null<Expr> = parseNext();
-			if (nxt == null)
-				throw 'SyntaxError: unexpected end of input';
-			var up:Token = TUnop(op, nxt);
-			switch ( up ) {
-				case TUnop("$", TIdent(name)):
-					return TVar(name);
-
-				case TUnop("$", TParen(ctoks)):
-					return TSubstitute( ctoks );
-
-				case TUnop("&", e):
-					return TRef( e );
-
-				case TUnop("*", e):
-					return TDeref( e );
-
-				default:
-					cursor = _c;
-					return up;
+			
+			/* if [op] is a control symbol */
+			if (isControl( op )) {
+				return TCtrl(op);
 			}
-			*/
+			
+			/* other symbols */
+			else {
+				return TOper(op);
+			}
 		}
 
 		/* === Comma (Placeholder Token) === */
@@ -193,13 +181,14 @@ class Lexer {
 					c = advance();
 				}
 			}
-			sgroup += c;
+			// sgroup += c;
 			advance();
 			
 			/* == Parse the Group == */
 			var grup:Array<Token> = (new Lexer().lexString(sgroup));
-			
+			return TParen( grup );
 			/* if it has top-level commas, then it's a tuple */
+			/*
 			if (grup.has(TComma)) {
 				var tupdef:Array<Token> = new Array();
 				var i:Int = 0;
@@ -231,19 +220,15 @@ class Lexer {
 						}
 					}
 				}
-				
-				/* Ensure that the last Token is not a comma */
 				if (expecting) {
 					throw 'SyntaxError: Unexpected ")"';
 				}
-
-				/* Create and return the Tuple */
 				return TTupleDef( tupdef );
 			}
 			else {
-				/* Create and return the grouped Tokens */
 				return TParen( grup );
 			}
+			*/
 		}
 
 		/* === Blocks and Expansions === */
@@ -293,9 +278,10 @@ class Lexer {
 	/**
 	  * Check whether [c] is a control-character
 	  */
-	private function isControlChar(c : Byte):Bool {
-		var ctrlChars = ['&'.code, '|'.code, ';'.code, '('.code, ')'.code];
-		return (ctrlChars.has(c.asint));
+	private function isControl(c : String):Bool {
+		return ([
+			';', '&', '&&', '||'
+		].has( c ));
 	}
 
 	/**
@@ -303,9 +289,10 @@ class Lexer {
 	  */
 	private function isOperator(c : Byte):Bool {
 		var opChars:Array<String> = [
-			'+', '-', '~',
+			'~',
 			'$', '&', '*',
-			'>', '<', '?'
+			'>', '<', '?',
+			';', '|'
 		];
 		return (opChars.has(c.aschar));
 	}
@@ -317,13 +304,14 @@ class Lexer {
 		buffer = new ByteArray();
 		tree = new Array();
 		cursor = 0;
+		line = 0;
 	}
 
 	/**
 	 * Check whether we have reached the end of our input
 	 */
 	private function atend():Bool {
-		return (cursor >= (buffer.length - 1));
+		return (cursor >= (buffer.length - 1) || buffer[cursor] == 0);
 	}
 
 	/**
