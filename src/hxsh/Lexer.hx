@@ -78,7 +78,12 @@ class Lexer {
 			c = current();
 			while (!atend() && isIdentChar( c )) {
 				id += c;
+				var escaping:Bool = (c == '\\'.code);
 				c = advance();
+				if (escaping) {
+					id += c;
+					c = advance();
+				}
 			}
 			// id += c;
 			switch ( id ) {
@@ -133,6 +138,24 @@ class Lexer {
 			}
 			advance();
 			return TConst(CString(str, (del=='"'.code?2:1)));
+		}
+
+		/* === References === */
+		else if (c == "$".code) {
+			advance();
+			var _i:Int = cursor;
+			var nxt = parseNext();
+			if (nxt == null)
+				throw "Unexpected '$' on line "+line;
+
+			switch (nxt) {
+				case TConst(_), TIdent(_), TParen(_):
+					return TRefer(nxt);
+
+				default:
+					cursor = _i;
+					return TOper("$");
+			}
 		}
 
 		/* === Operators === */
@@ -270,9 +293,7 @@ class Lexer {
 	  * Check whether [c] is a pash identifier character
 	  */
 	private function isIdentChar(c : Byte):Bool {
-		return (c.isAlphaNumeric() || [
-			'.'.code
-		].has( c ));
+		return (!(isControl(c.aschar) || c.isWhiteSpace()));
 	}
 
 	/**

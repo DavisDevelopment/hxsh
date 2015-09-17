@@ -16,6 +16,9 @@ enum Token {
     /* Group */
     TParen(tree : Array<Token>);
 
+    /* The "$" symbol preceding something */
+    TRefer(tk : Token);
+
     /* Tuple */
     TTupleDef(values : Array<Token>);
 
