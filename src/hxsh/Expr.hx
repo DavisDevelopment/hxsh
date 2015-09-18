@@ -12,6 +12,9 @@ enum Expr {
 	/* [END OF FILE] */
 	EDone;
 
+	/* Grouped set of expressions */
+	EGrouped(stree : Array<Expr>);
+
 /* === Compound Expressions === */
 	
 	ECommand(cmd:Word, args:Array<Word>, redirs:Array<Redir>);

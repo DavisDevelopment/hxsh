@@ -293,7 +293,7 @@ class Lexer {
 	  * Check whether [c] is a pash identifier character
 	  */
 	private function isIdentChar(c : Byte):Bool {
-		return (!(isControl(c.aschar) || c.isWhiteSpace()));
+		return (!(isControl(c.aschar) || c.isWhiteSpace() || isSym(c)));
 	}
 
 	/**
@@ -316,6 +316,15 @@ class Lexer {
 			';', '|'
 		];
 		return (opChars.has(c.aschar));
+	}
+
+	/**
+	  * Check whether [c] is a symbol
+	  */
+	private function isSym(c : Byte):Bool {
+		return ([
+			'(', ')'
+		].has(c.aschar));
 	}
 
 	/**

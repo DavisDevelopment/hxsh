@@ -28,11 +28,11 @@ class Parser {
 		 */
 		while (true) {
 			var e = parseExpr();
-			if (e == null) {
-				break;
-			}
-			else {
-				tree.push( e );
+			switch ( e ) {
+				case EDone:
+					break;
+				default:
+					tree.push( e );
 			}
 		}
 
@@ -129,6 +129,7 @@ class Parser {
 						return EWord(FCall(werds.shift(), werds));
 					
 					default:
+						trace(targs);
 						tokens.unshift(targs);
 				}
 
@@ -146,10 +147,8 @@ class Parser {
 						return EWord(Ref(RAll));
 
 					case TParen( stree ):
-						save();
-						tokens = stree;
-						var ge:Expr = parseExpr();
-						return EWord(Ref(RAll));
+						var ge:Expr = parseTokenList(stree);
+						return EGrouped([ge]);
 
 					default:
 						throw 'Error: Cannot reference $ref';
