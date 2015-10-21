@@ -23,7 +23,6 @@ class Lexer {
 	public function lexString(s : String):Array<Expr> {
 		reset();
 		buffer = ByteArray.fromString(s + ' ');
-		trace(buffer.toArray());
 
 		while ( true ) {
 			var e:Null<Expr> = parseNext();
